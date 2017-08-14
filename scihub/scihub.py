@@ -13,6 +13,7 @@ import logging
 import hashlib
 import argparse
 import requests
+import bibtexparser
 
 from bs4 import BeautifulSoup
 
@@ -200,6 +201,7 @@ def main():
     parser = argparse.ArgumentParser(description='SciHub - To remove all barriers in the way of science.')
     parser.add_argument('-d', '--download', metavar='(DOI|PMID|URL)', help='tries to find and download the paper', type=str)
     parser.add_argument('-f', '--file', metavar='path', help='pass file with list of identifiers and download each', type=str)
+    parser.add_argument('-b','--bibtex',metavar='.bib', help='pass BibTeX file and download each entry by OID', type=str)
     parser.add_argument('-s', '--search', metavar='query', help='search Google Scholars', type=str)
     parser.add_argument('-sd', '--search_download', metavar='query', help='search Google Scholars and download if possible', type=str)
     parser.add_argument('-l', '--limit', metavar='N', help='the number of search results to limit to', default=10, type=int)
@@ -236,6 +238,20 @@ def main():
                     logger.debug('%s', result['err'])
                 else:
                     logger.debug('Successfully downloaded file with identifier %s', paper['url'])
+    elif args.bibtex:
+        with open(args.bibtex, 'r') as bibtex_file:
+            bibtex_str = bibtex_file.read()
+
+        bib_database = bibtexparser.loads(bibtex_str)
+
+        for bib_entry in bib_database.entries:
+            doi = bib_entry.get('doi', None)
+            identifier = doi.replace('https://doi.org/','')
+            result = sh.download(identifier, args.output)
+            if 'err' in result:
+                logger.debug('%s', result['err'])
+            else:
+                logger.debug('Successfully downloaded file with identifier %s', identifier)
     elif args.file:
         with open(args.file, 'r') as f:
             identifiers = f.read().splitlines()
