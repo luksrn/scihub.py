@@ -243,15 +243,19 @@ def main():
             bibtex_str = bibtex_file.read()
 
         bib_database = bibtexparser.loads(bibtex_str)
-
+        index = 1
         for bib_entry in bib_database.entries:
             doi = bib_entry.get('doi', None)
             identifier = doi.replace('https://doi.org/','')
-            result = sh.download(identifier, args.output)
+            file_name = '%s_%s_%s.pdf'  % (index, 
+						bib_entry.get('title','').replace("/","-"),
+						 bib_entry.get('year',''))            
+            result = sh.download(identifier, args.output, file_name )
             if 'err' in result:
                 logger.debug('%s', result['err'])
             else:
-                logger.debug('Successfully downloaded file with identifier %s', identifier)
+                index += 1
+                logger.debug('Successfully downloaded file with identifier %s -> %s', identifier, file_name)
     elif args.file:
         with open(args.file, 'r') as f:
             identifiers = f.read().splitlines()
