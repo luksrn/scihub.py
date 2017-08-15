@@ -249,13 +249,19 @@ def main():
             identifier = doi.replace('https://doi.org/','')
             file_name = '%s_%s_%s.pdf'  % (index, 
 						bib_entry.get('title','').replace("/","-"),
-						 bib_entry.get('year',''))            
-            result = sh.download(identifier, args.output, file_name )
-            if 'err' in result:
-                logger.debug('%s', result['err'])
-            else:
-                index += 1
-                logger.debug('Successfully downloaded file with identifier %s -> %s', identifier, file_name)
+						 bib_entry.get('year',''))       
+
+            path = os.path.join(args.output, file_name)
+            exists = os.path.exists(path)
+            if exists:
+                print 'Exists ' + path + " skiping download."
+            else:                
+                result = sh.download(identifier, args.output, file_name )
+                if 'err' in result:
+                    logger.debug('%s', result['err'])
+                else:                
+                    logger.debug('Successfully downloaded file with identifier %s -> %s', identifier, file_name)
+            index += 1
     elif args.file:
         with open(args.file, 'r') as f:
             identifiers = f.read().splitlines()
